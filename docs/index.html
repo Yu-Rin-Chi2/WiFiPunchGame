@@ -29,7 +29,7 @@
       />
       <!-- モバイル用追加 -->
     </div>
-    <script>
+    <!-- <script>
       var canvas = document.querySelector("#unity-canvas");
       function unityShowBanner(msg, type) {
         var warningBanner = document.querySelector("#unity-warning");
@@ -67,23 +67,6 @@
         showBanner: unityShowBanner,
       };
 
-      // if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      //   // Mobile device style: fill the whole browser client area with the game canvas:
-
-      //   var meta = document.createElement("meta");
-      //   meta.name = "viewport";
-
-      //   meta.content =
-      //     "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
-      //   document.getElementsByTagName("head")[0].appendChild(meta);
-      //   document.querySelector("#unity-container").className = "unity-mobile";
-      //   canvas.className = "unity-mobile";
-
-      //   // To lower canvas resolution on mobile devices to gain some
-      //   // performance, uncomment the following line:
-      //   // config.devicePixelRatio = 1;
-      // }
-
       // モバイル用コード修正
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         var canvas = document.querySelector("#unity-canvas");
@@ -99,6 +82,81 @@
 
       document.querySelector("#unity-loading-bar").style.display = "block";
 
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          document.querySelector("#unity-progress-bar-full").style.width =
+            100 * progress + "%";
+        })
+          .then((unityInstance) => {
+            document.querySelector("#unity-loading-bar").style.display = "none";
+          })
+          .catch((message) => {
+            alert(message);
+          });
+      };
+
+      document.body.appendChild(script);
+    </script> -->
+
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+
+      // 表示サイズに応じて canvas サイズを切り替える
+      var isLargeScreen = window.innerWidth >= 768;
+      const canvasWidth = isLargeScreen ? 540 : 320;
+      const canvasHeight = isLargeScreen ? 540 : 320;
+
+      canvas.width = canvasWidth; // Unity内部で使う解像度
+      canvas.height = canvasHeight;
+      canvas.style.width = `${canvasWidth}px`; // 表示サイズ
+      canvas.style.height = `${canvasHeight}px`;
+      canvas.style.margin = "0 auto";
+      canvas.style.position = "relative";
+
+      // 警告バナー関数
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length
+            ? "block"
+            : "none";
+        }
+        var div = document.createElement("div");
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == "error") div.style = "background: red; padding: 10px;";
+        else {
+          if (type == "warning")
+            div.style = "background: yellow; padding: 10px;";
+          setTimeout(function () {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      // Unityロード設定
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/WebGL.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/WebGL.data",
+        frameworkUrl: buildUrl + "/WebGL.framework.js",
+        codeUrl: buildUrl + "/WebGL.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "WiFiPunchGame",
+        productVersion: "0.1.0",
+        showBanner: unityShowBanner,
+      };
+
+      // ローディングバー表示
+      document.querySelector("#unity-loading-bar").style.display = "block";
+
+      // Unityインスタンス作成
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
